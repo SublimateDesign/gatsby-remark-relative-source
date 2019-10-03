@@ -1,7 +1,7 @@
 {
   "name": "gatsby-remark-relative-source",
   "description": "Converts sources in markdown to be relative to their node's parent directory. Forked from gatsby-remark-relative-images, this plugin expands its functionality so paths can be converted on raw markdown html beyond img nodes. This will help gatsby-remark-images or any other plugin expecting relative source (such as gatsby-remark-custom-image-component) match images outside the node folder. For example, use with NetlifyCMS.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": "Daniel Mahon <daniel@mahonstudios.com>",
   "contributors": ["Matt Ubben"],
   "dependencies": {
