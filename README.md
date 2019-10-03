@@ -1,12 +1,12 @@
-# gatsby-remark-relative-images
+# gatsby-remark-relative-source
 
-Convert image src(s) in markdown to be relative to their node's parent directory. This will help [gatsby-remark-images](https://github.com/gatsbyjs/gatsby/tree/master/packages/gatsby-remark-images) match images outside the node folder. For example, use with NetlifyCMS.
+Converts sources in markdown to be relative to their node's parent directory. Based on [gatsby-remark-relative-images](https://github.com/danielmahon/gatsby-remark-relative-images), this plugin expands its functionality so paths can be processed from any raw markdown html node attribute rather than hard-coded to img src. This will help [gatsby-remark-images](https://github.com/gatsbyjs/gatsby/tree/master/packages/gatsby-remark-images) match images outside the node folder, and through configuration allow other plugins expecting relative source to work (such as [gatsby-remark-custom-image-component](https://github.com/d4rekanguok/gatsby-remark-custom-image-component/blob/master/src/index.js)). For example, use with NetlifyCMS.
 
-NOTE: This was built for use with NetlifyCMS and should be considered a temporary solution until relative paths are supported. If it works for other use cases then great!
+NOTE: As stated in the original [gatsby-remark-relative-images](https://github.com/danielmahon/gatsby-remark-relative-images), this was built for use with NetlifyCMS and should be considered a temporary solution until relative paths are supported. If it works for other use cases then great!
 
 ## Install
 
-`npm install --save gatsby-remark-relative-images`
+`npm install --save gatsby-remark-relative-source`
 
 ## How to use
 
@@ -32,10 +32,14 @@ plugins: [
     resolve: `gatsby-transformer-remark`,
     options: {
       plugins: [
-        // gatsby-remark-relative-images must
-        // go before gatsby-remark-images
+        // gatsby-remark-relative-source must
+        // go before gatsby-remark-images and other plugins needing relative sources
         {
-          resolve: `gatsby-remark-relative-images`,
+          resolve: `gatsby-remark-relative-source`,
+          options: {
+            name: `uploads`,
+            htmlSources: [{tagName: `post-video`, attributes: [`image`]}] // post-video is a component referenced later by gatsby-remark-custom-image-component
+          },
         },
         {
           resolve: `gatsby-remark-images`,
@@ -46,19 +50,37 @@ plugins: [
             maxWidth: 590,
           },
         },
+        {
+          resolve: `gatsby-remark-custom-image-component`,
+          options: {
+            // plugin options
+            componentName: 'post-video',
+            imagePropName: 'image',
+            sharpMethod: 'fluid',
+            // fluid's arguments
+            quality: 80,
+            maxWidth: 2048,
+          }
+        },
       ],
     },
   },
 ];
 ```
 
-### To convert frontmatter images
+```markdown example
+
+<post-video url="https://vimeo.com/yourvideoid" image="/img/updated-by-gatsby-remark-relative-source"></post-video>
+
+```
+
+### To convert frontmatter images 
 
 Use the exported function `fmImagesToRelative` in your `gatsby-node.js`. This takes every node returned by your gatsby-source plugins and converts any absolute paths in markdown frontmatter data into relative paths if a matching file is found.
 
 ```js
 // gatsby-node.js
-const { fmImagesToRelative } = require('gatsby-remark-relative-images');
+const { fmImagesToRelative } = require('gatsby-remark-relative-source');
 
 exports.onCreateNode = ({ node }) => {
   fmImagesToRelative(node);
@@ -97,7 +119,7 @@ module.exports = {
       resolve: `gatsby-transformer-remark`,
       options: {
         plugins: [
-          `gatsby-remark-relative-images`,
+          `gatsby-remark-relative-source`,
           {
             resolve: `gatsby-remark-images`,
             options: {},
@@ -109,4 +131,3 @@ module.exports = {
   ],
 }
 ```
-

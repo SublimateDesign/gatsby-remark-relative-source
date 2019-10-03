@@ -7,14 +7,38 @@ const slash = require(`slash`);
 const deepMap = require("deep-map");
 const polyfill = require(`babel-polyfill`);
 
-// If the image is relative (not hosted elsewhere)
-// 1. Find the image file
-// 2. Convert the image src to be relative to its parent node
-// This will allow gatsby-remark-images to resolve the image correctly
+// If the source is relative (not hosted elsewhere)
+// 1. Find the source file
+// 2. Convert the source attribute to be relative to its parent node
+// This will allow plugins dependent on relative sources (gatsby-remark-images, gatsby-remark-image-custom-component, etc) to resolve correctly
 module.exports = ({ files, markdownNode, markdownAST, pathPrefix, getNode, reporter }, pluginOptions) => {
 	const defaults = {};
 
-	const options = _.defaults(pluginOptions, defaults);
+    const options = _.defaults(pluginOptions, defaults);  
+
+    const imgHtmlNode = {tagName: `img`, attributes: [`src`]};
+    let htmlSources = [];
+    if (options.htmlSources && options.htmlSources.length) {
+        for (let source of options.htmlSources) {
+            if (source.tagName && source.attributes && Array.isArray(source.attributes) && source.attributes.length) {
+                htmlSources.push(source);
+            }
+            else {
+                reporter.error(`${JSON.stringify(source)} is an invalid source definition object. Ensure properties "tagName" (string) and "attributes" (array of strings) are set.`);
+            }
+        }
+    }
+    else if (!options.excludeImgNodes) {
+        // ensure img elements are included unless explicitly excluded
+        var exisingImgNode = _.find(htmlSources, node => { 
+            if (node.tagName === `img`) {
+                return node;
+            }
+        });
+        if (!exisingImgNode) {
+            htmlSources.push(imgHtmlNode);
+        }
+    }
 
 	// This will only work for markdown syntax image tags
 	const markdownImageNodes = select(markdownAST, `image`);
@@ -59,44 +83,63 @@ module.exports = ({ files, markdownNode, markdownAST, pathPrefix, getNode, repor
 							return resolve();
 						}
 
-						const $ = cheerio.load(node.value);
+                        const $ = cheerio.load(node.value);
 
-						if ($(`img`).length === 0) {
-							// No img tags
-							return resolve();
-						}
-
-						let imageRefs = [];
-						$(`img`).each(function() {
-							imageRefs.push($(this));
-						});
+                        let imageRefs = [];
+                        // add any elements matching tagName set in the check node definitions
+                        for (let source of htmlSources) {
+                            $(source.tagName).each(function() {
+                                imageRefs.push($(this));
+                            });
+                        }
+                        if (!imageRefs.length) {
+                            // No matching elements
+                            return resolve();
+                        }
 
 						for (let thisImg of imageRefs) {
 							// Get the details we need.
-							let formattedImgTag = {};
-							formattedImgTag.url = thisImg.attr(`src`);
+                            let formattedImgTag = {};
+                            // get the matching check node definition to determine the source for this element
+                            var source = _.find(htmlSources, source => { 
+                                if (source.tagName === (thisImg[0].tagName || thisImg[0].name)) {
+                                    return source;
+                                }
+                            });
+                            if (!source) {
+                                return resolve();
+                            }
 
-							if (!formattedImgTag.url) {
-								return resolve();
-							}
-							// Only handle relative (local) urls
-							if (!isRelativeUrl(formattedImgTag.url)) {
-								return resolve();
-							}
+                            let sourcesUpdated = false;
+                            for (let sourceAttribute of source.attributes) {
+                                formattedImgTag.url = thisImg.attr(sourceAttribute);
+                                if (!formattedImgTag.url) {
+                                    continue;
+                                }
+                                // Only handle relative (local) urls
+                                if (!isRelativeUrl(formattedImgTag.url)) {
+                                    continue;
+                                }
+                                reporter.info(`${sourceAttribute} found`)
 
-							let imagePath;
-							const imageNode = _.find(files, file => {
-								if (file.sourceInstanceName === options.name) {
-									imagePath = path.join(file.dir, path.basename(formattedImgTag.url));
-									return slash(path.normalize(file.absolutePath)) === slash(imagePath);
-								}
-							});
+                                let imagePath;
+                                const imageNode = _.find(files, file => {
+                                    if (file.sourceInstanceName === options.name) {
+                                        imagePath = path.join(file.dir, path.basename(formattedImgTag.url));
+                                        return slash(path.normalize(file.absolutePath)) === slash(imagePath);
+                                    }
+                                });
 
-							if (!imageNode) return resolve();
+                                if (!imageNode) continue;
 
-							const parentNode = getNode(markdownNode.parent);
-							// Make the image src relative to its parent node
-							thisImg.attr("src", slash(path.relative(parentNode.dir, imagePath)));
+                                const parentNode = getNode(markdownNode.parent);
+                                // Make the image src relative to its parent node
+                                thisImg.attr(sourceAttribute, slash(path.relative(parentNode.dir, imagePath)));
+                                reporter.info(`${sourceAttribute} set to ${imagePath}`)
+                                sourcesUpdated = true;
+                            }
+                            if (!sourcesUpdated)
+                                return resolve(); // no updates applied
 
 							node.value = $(`body`).html(); // fix for cheerio v1
 						}

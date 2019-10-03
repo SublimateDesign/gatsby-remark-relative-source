@@ -1,8 +1,9 @@
 {
-  "name": "gatsby-remark-relative-images",
-  "description": "Convert image src(s) in markdown to be relative to their node's parent directory. This will help gatsby-remark-images match images outside the node folder. For example, use with NetlifyCMS.",
+  "name": "gatsby-remark-relative-source",
+  "description": "Converts sources in markdown to be relative to their node's parent directory. Forked from gatsby-remark-relative-images, this plugin expands its functionality so paths can be converted on raw markdown html beyond img nodes. This will help gatsby-remark-images or any other plugin expecting relative source (such as gatsby-remark-custom-image-component) match images outside the node folder. For example, use with NetlifyCMS.",
   "version": "0.2.3",
   "author": "Daniel Mahon <daniel@mahonstudios.com>",
+  "contributors": ["Matt Ubben"],
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "cheerio": "^1.0.0-rc.3",
@@ -26,7 +27,9 @@
     "relative",
     "netlifycms",
     "remark",
-    "responsive images"
+    "responsive images",
+    "component",
+    "source"
   ],
   "license": "MIT",
   "main": "index.js",
@@ -37,10 +40,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/danielmahon/gatsby-remark-relative-images.git"
+    "url": "git+https://github.com/SublimateDesign/gatsby-remark-relative-source.git"
   },
   "bugs": {
-    "url": "https://github.com/danielmahon/gatsby-remark-relative-images/issues"
+    "url": "https://github.com/SublimateDesign/gatsby-remark-relative-source/issues"
   },
-  "homepage": "https://github.com/danielmahon/gatsby-remark-relative-images#readme"
+  "homepage": "https://github.com/SublimateDesign/gatsby-remark-relative-source#readme"
 }
