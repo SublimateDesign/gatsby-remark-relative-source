@@ -16,7 +16,6 @@ module.exports = ({ files, markdownNode, markdownAST, pathPrefix, getNode, repor
 
     const options = _.defaults(pluginOptions, defaults);  
 
-    const imgHtmlNode = {tagName: `img`, attributes: [`src`]};
     let htmlSources = [];
     if (options.htmlSources && options.htmlSources.length) {
         for (let source of options.htmlSources) {
@@ -28,7 +27,7 @@ module.exports = ({ files, markdownNode, markdownAST, pathPrefix, getNode, repor
             }
         }
     }
-    else if (!options.excludeImgNodes) {
+    if (!options.excludeImgNodes) {
         // ensure img elements are included unless explicitly excluded
         var exisingImgNode = _.find(htmlSources, node => { 
             if (node.tagName === `img`) {
@@ -36,7 +35,7 @@ module.exports = ({ files, markdownNode, markdownAST, pathPrefix, getNode, repor
             }
         });
         if (!exisingImgNode) {
-            htmlSources.push(imgHtmlNode);
+            htmlSources.push({tagName: `img`, attributes: [`src`]});
         }
     }
 
@@ -120,7 +119,6 @@ module.exports = ({ files, markdownNode, markdownAST, pathPrefix, getNode, repor
                                 if (!isRelativeUrl(formattedImgTag.url)) {
                                     continue;
                                 }
-                                reporter.info(`${sourceAttribute} found`)
 
                                 let imagePath;
                                 const imageNode = _.find(files, file => {
@@ -135,7 +133,6 @@ module.exports = ({ files, markdownNode, markdownAST, pathPrefix, getNode, repor
                                 const parentNode = getNode(markdownNode.parent);
                                 // Make the image src relative to its parent node
                                 thisImg.attr(sourceAttribute, slash(path.relative(parentNode.dir, imagePath)));
-                                reporter.info(`${sourceAttribute} set to ${imagePath}`)
                                 sourcesUpdated = true;
                             }
                             if (!sourcesUpdated)
