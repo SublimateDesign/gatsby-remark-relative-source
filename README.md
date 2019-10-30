@@ -68,7 +68,7 @@ plugins: [
 ];
 ```
 
-```markdown example
+```markdown
 
 <post-video url="https://vimeo.com/yourvideoid" image="/img/updated-by-gatsby-remark-relative-source"></post-video>
 
