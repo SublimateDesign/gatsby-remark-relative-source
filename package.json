@@ -8,17 +8,17 @@
   ],
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "cheerio": "^1.0.0-rc.3",
+    "cheerio": "^1.0.0-rc.5",
     "deep-map": "^1.5.0",
     "is-relative-url": "^2.0.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "slash": "^2.0.0",
     "unist-util-select": "^1.5.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.5.5",
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.0.0-beta.44",
+    "@babel/cli": "^7.13.0",
+    "@babel/core": "^7.13.8",
+    "@babel/preset-env": "^7.13.9",
     "cross-env": "^5.1.4"
   },
   "keywords": [
